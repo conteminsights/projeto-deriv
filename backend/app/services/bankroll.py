@@ -3,7 +3,7 @@ ZeeK.Web — Bankroll Management
 
 Gerencia stake, Martingale, limites, mini-meta.
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 
@@ -20,7 +20,7 @@ class BankrollState:
     """Estado vivo da banca."""
     initial_stake: float = 2.0
     current_stake: float = 2.0
-    martingale: MartingaleConfig = MartingaleConfig()
+    martingale: MartingaleConfig = field(default_factory=MartingaleConfig)
     consecutive_losses: int = 0
     martingale_step: int = 0
 

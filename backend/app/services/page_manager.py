@@ -79,3 +79,7 @@ class PageManager:
     @property
     def active_count(self) -> int:
         return sum(1 for p in self.pages.values() if p.operating)
+
+
+# Global singleton
+page_manager = PageManager()
