@@ -12,7 +12,7 @@ from typing import Optional
 from app.services.strategy_engine import StrategyEngine, TriggerCondition, Rule
 from app.services.order_manager import order_manager
 from app.services.page_manager import page_manager
-from app.services.bankroll import BankrollState
+from app.services.bankroll import bankroll_manager, DefenseState
 from app.workers.deriv_worker import deriv_worker
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,6 @@ class StrategyRunner:
 
     def __init__(self):
         self.engine = StrategyEngine()
-        self.bankroll = BankrollState()
         self._running = False
         self._task: Optional[asyncio.Task] = None
 
@@ -127,7 +126,7 @@ class StrategyRunner:
 
     async def _execute_action(self, page, action: dict):
         """Execute a trading signal."""
-        stake = self.bankroll.current_stake
+        stake = bankroll_manager.current_stake
         result = await order_manager.place_order(
             symbol=page.market,
             contract_type=action["contract_type"],
