@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #394554 #09091f;
+  }
+
+  body {
+    @apply bg-zeek-bg text-zeek-text font-sans antialiased;
+  }
+
+  input, select, textarea {
+    @apply bg-zeek-bg-tertiary border border-zeek-border rounded-md px-3 py-2 
+           text-zeek-text placeholder:text-zeek-text-muted
+           focus:outline-none focus:border-zeek-accent focus:ring-1 focus:ring-zeek-accent;
+  }
+
+  button {
+    @apply transition-colors duration-150;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-zeek-bg-secondary border border-zeek-border rounded-lg p-4;
+  }
+
+  .btn-primary {
+    @apply bg-zeek-accent hover:bg-zeek-accent-dark text-white font-medium 
+           px-4 py-2 rounded-md disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-danger {
+    @apply bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-md;
+  }
+
+  .btn-ghost {
+    @apply bg-transparent hover:bg-zeek-bg-tertiary text-zeek-text-secondary 
+           px-3 py-1.5 rounded-md;
+  }
+
+  .badge-win {
+    @apply bg-green-900/50 text-zeek-profit px-2 py-0.5 rounded text-xs font-medium;
+  }
+
+  .badge-loss {
+    @apply bg-red-900/50 text-zeek-loss px-2 py-0.5 rounded text-xs font-medium;
+  }
+
+  .tab-active {
+    @apply border-b-2 border-zeek-accent text-zeek-text;
+  }
+}
