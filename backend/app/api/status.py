@@ -1,12 +1,26 @@
 """
-ZeeK.Web — Status Endpoints (stub for Fase 2)
+ZeeK.Web — Status Endpoints
+
+Real-time connection status, balance, and market info from DerivWorker.
 """
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+
+from app.workers.deriv_worker import deriv_worker
 
 router = APIRouter()
 
 
 @router.get("/")
 async def get_status():
-    """Return basic server status."""
-    return {"status": "ok", "version": "1.0.0", "connected": False, "balance": None}
+    """Return current server and Deriv connection status."""
+    return {
+        "server": "ok",
+        "version": "1.0.0",
+        "deriv_connected": deriv_worker.connected,
+        "balance": deriv_worker.balance,
+        "active_symbols": list(deriv_worker.active_symbols),
+        "latest_ticks": {
+            sym: {"epoch": t.get("epoch"), "quote": t.get("quote")}
+            for sym, t in deriv_worker.latest_ticks.items()
+        },
+    }

@@ -14,3 +14,4 @@ api_router.include_router(strategies.router, prefix="/strategies", tags=["strate
 api_router.include_router(bankroll.router, prefix="/bankroll", tags=["bankroll"])
 api_router.include_router(trades.router, prefix="/trades", tags=["trades"])
 api_router.include_router(setups.router, prefix="/setups", tags=["setups"])
+api_router.include_router(ws.router, prefix="/ws", tags=["ws"])
