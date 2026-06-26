@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Activity, BarChart3, Calculator, FileText, Settings, LayoutDashboard, TrendingUp } from 'lucide-react'
+import { BarChart3, Calculator, FileText, Settings, LayoutDashboard, TrendingUp } from 'lucide-react'
 
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
