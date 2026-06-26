@@ -1,9 +1,14 @@
 # ZeeK.Web — Bot de Trading para Deriv (Versão Web)
 
+[![GitHub](https://img.shields.io/badge/GitHub-conteminsights%2Fprojeto--deriv-f86525?style=flat&logo=github)](https://github.com/conteminsights/projeto-deriv)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-18.3-61DAFB?style=flat&logo=react)](https://react.dev/)
+[![License](https://img.shields.io/badge/License-Proprietary-ffd64f?style=flat)]()
+
 Recriação completa do **ZeeK.Bot 3.1** (bot de opções binárias para a plataforma **Deriv**) em arquitetura web moderna:
 **FastAPI + React + WebSocket**.
 
-> **Status:** Documentação completa + Scaffold do projeto  
+> **Status:** 🟢 Versão 1.0 — Funcionalmente equivalente ao ZeeK 3.1  
 > **Versão alvo:** 1.0 (funcionalmente equivalente ao ZeeK 3.1)
 
 ---
