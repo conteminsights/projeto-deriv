@@ -10,6 +10,8 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from app.core.security import decode_token
 from app.workers.deriv_worker import deriv_worker
+from app.services.page_manager import page_manager
+from app.services.strategy_runner import strategy_runner
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -105,6 +107,15 @@ async def websocket_endpoint(websocket: WebSocket):
                     "tick": tick,
                 })
 
+            elif action == "get_tick_history":
+                symbol = data.get("symbol", "R_100")
+                history = list(deriv_worker.tick_history.get(symbol, []))
+                await websocket.send_json({
+                    "type": "tick_history",
+                    "symbol": symbol,
+                    "ticks": history,
+                })
+
             elif action == "get_contracts":
                 await websocket.send_json({
                     "type": "contracts",
@@ -129,6 +140,26 @@ async def websocket_endpoint(websocket: WebSocket):
                 await deriv_worker.stop()
                 await websocket.send_json({
                     "type": "deriv_disconnected",
+                })
+
+            elif action == "start_operating":
+                page_id = data.get("page_id", "default")
+                operating = page_manager.toggle_operation(page_id)
+                if operating:
+                    strategy_runner.start()
+                await websocket.send_json({
+                    "type": "operating_status",
+                    "page_id": page_id,
+                    "operating": operating,
+                })
+
+            elif action == "stop_operating":
+                page_manager.stop_all()
+                await strategy_runner.stop()
+                await websocket.send_json({
+                    "type": "operating_status",
+                    "operating": False,
+                    "message": "All pages stopped",
                 })
 
             else:

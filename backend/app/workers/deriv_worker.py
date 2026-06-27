@@ -6,6 +6,7 @@ and expose current state (ticks, balance, connection status) to the rest of the 
 """
 import asyncio
 import logging
+from collections import deque
 from typing import Optional
 
 from app.services.deriv_client import DerivClient
@@ -26,6 +27,7 @@ class DerivWorker:
         self.balance: Optional[dict] = None
         self.active_symbols: set[str] = set()
         self.latest_ticks: dict[str, dict] = {}  # symbol -> last tick
+        self.tick_history: dict[str, deque] = {}  # symbol -> deque of {epoch, quote}
         self.contract_updates: list[dict] = []
 
     async def start(self, token: str):
@@ -107,6 +109,13 @@ class DerivWorker:
         symbol = tick.get("symbol")
         if symbol:
             self.latest_ticks[symbol] = tick
+            # Store in history buffer (up to 200 ticks per symbol)
+            if symbol not in self.tick_history:
+                self.tick_history[symbol] = deque(maxlen=200)
+            self.tick_history[symbol].append({
+                "epoch": tick.get("epoch"),
+                "quote": tick.get("quote"),
+            })
 
     async def _on_balance(self, balance: dict):
         self.balance = balance

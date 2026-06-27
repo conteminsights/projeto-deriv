@@ -20,6 +20,10 @@ interface AppState {
   // Strategies
   strategies: Strategy[]
 
+  // Operating
+  operating: boolean
+  operatingPage: string | null
+
   // UI
   isConnecting: boolean
   error: string | null
@@ -31,6 +35,7 @@ interface AppState {
   addTick: (symbol: string, tick: Tick) => void
   setBankroll: (data: BankrollResponse) => void
   setStrategies: (list: Strategy[]) => void
+  setOperating: (active: boolean, pageId?: string) => void
   setConnecting: (v: boolean) => void
   setError: (msg: string | null) => void
 }
@@ -45,6 +50,8 @@ export const useStore = create<AppState>((set, get) => ({
   ticks: {},
   bankroll: null,
   strategies: [],
+  operating: false,
+  operatingPage: null,
   isConnecting: false,
   error: null,
 
@@ -74,6 +81,7 @@ export const useStore = create<AppState>((set, get) => ({
 
   setBankroll: (data) => set({ bankroll: data }),
   setStrategies: (list) => set({ strategies: list }),
+  setOperating: (active, pageId) => set({ operating: active, operatingPage: pageId || null }),
   setConnecting: (v) => set({ isConnecting: v }),
   setError: (msg) => set({ error: msg }),
 }))

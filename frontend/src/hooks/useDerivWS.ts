@@ -8,6 +8,7 @@ export function useDerivWS() {
   const token = useStore((s) => s.token)
   const setDerivStatus = useStore((s) => s.setDerivStatus)
   const addTick = useStore((s) => s.addTick)
+  const setOperating = useStore((s) => s.setOperating)
   const setError = useStore((s) => s.setError)
 
   const callbackRef = useRef<(msg: WSMessage) => void>()
@@ -28,6 +29,9 @@ export function useDerivWS() {
           break
         case 'status':
           setDerivStatus(msg)
+          break
+        case 'operating_status':
+          setOperating(msg.operating, msg.page_id)
           break
         case 'error':
           setError(msg.message)

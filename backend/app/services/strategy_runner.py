@@ -118,11 +118,14 @@ class StrategyRunner:
                 await asyncio.sleep(1)
 
     def _get_prices(self, symbol: str) -> list:
-        """Extract price history from latest ticks."""
-        tick = deriv_worker.latest_ticks.get(symbol)
-        if not tick or "quote" not in tick:
+        """Extract price history from tick buffer for indicator calculation."""
+        history = deriv_worker.tick_history.get(symbol)
+        if not history or len(history) < 2:
+            tick = deriv_worker.latest_ticks.get(symbol)
+            if tick and "quote" in tick:
+                return [tick["quote"]]
             return []
-        return [tick["quote"]]
+        return [t["quote"] for t in history if t.get("quote") is not None]
 
     async def _execute_action(self, page, action: dict):
         """Execute a trading signal."""

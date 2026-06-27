@@ -6,6 +6,7 @@ import { derivWS } from '../services/ws'
 export function OperationPage() {
   const ticks = useStore((s) => s.ticks)
   const derivConnected = useStore((s) => s.derivConnected)
+  const operating = useStore((s) => s.operating)
   const [symbol, setSymbol] = useState('R_100')
   const [patToken, setPatToken] = useState('')
   const [selectedMarket, setSelectedMarket] = useState('R_100')
@@ -100,7 +101,37 @@ export function OperationPage() {
         showSMA={true}
       />
 
-      {/* Controls placeholder */}
+      {/* Operating Controls */}
+      <div className="bg-[#12121a] border border-[#1e1e2a] rounded-xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-white">Estratégia</h2>
+          <div className="flex items-center gap-2">
+            <span className={`text-xs ${operating ? 'text-green-400' : 'text-[#6b6b80]'}`}>
+              {operating ? 'Operando' : 'Parado'}
+            </span>
+            <button
+              onClick={() => operating ? derivWS.stopOperating() : derivWS.startOperating()}
+              disabled={!derivConnected}
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                operating
+                  ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50 border border-red-800/30'
+                  : 'bg-green-900/30 text-green-400 hover:bg-green-900/50 border border-green-800/30'
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              {operating ? 'PARAR' : 'OPERAR'}
+            </button>
+          </div>
+        </div>
+        <div className="text-xs text-[#6b6b80]">
+          {!derivConnected
+            ? 'Conecte-se à Deriv primeiro'
+            : operating
+              ? 'Estratégia ativa — monitorando ticks e executando ordens'
+              : 'Clique em OPERAR para iniciar a estratégia CUSTOM'}
+        </div>
+      </div>
+
+      {/* Controls */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-[#12121a] border border-[#1e1e2a] rounded-xl p-4">
           <div className="text-xs text-[#6b6b80] uppercase tracking-wide mb-1">Stake</div>

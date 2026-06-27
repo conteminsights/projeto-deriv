@@ -84,6 +84,14 @@ class DerivWebSocket {
   disconnectDeriv() {
     this.send('disconnect_deriv')
   }
+
+  startOperating(pageId: string = 'default') {
+    this.send('start_operating', { page_id: pageId })
+  }
+
+  stopOperating() {
+    this.send('stop_operating')
+  }
 }
 
 export const derivWS = new DerivWebSocket()
