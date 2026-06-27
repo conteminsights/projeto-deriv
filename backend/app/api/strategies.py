@@ -16,7 +16,9 @@ from app.services.strategy_runner import strategy_runner
 router = APIRouter()
 
 
-def _get_user(authorization: str) -> int:
+async def _get_user(authorization: str | None) -> int:
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Missing authorization header")
     payload = decode_token(authorization.replace("Bearer ", ""))
     if not payload:
         raise HTTPException(status_code=401, detail="Invalid token")
@@ -39,11 +41,11 @@ def _setup_to_response(s: Setup) -> dict:
 
 @router.get("/")
 async def list_strategies(
-    authorization: str = Header(None),
+    authorization: str | None = Header(None),
     db: AsyncSession = Depends(get_db),
 ):
     """List all strategies for the authenticated user."""
-    user_id = _get_user(authorization)
+    user_id = await _get_user(authorization)
     result = await db.execute(
         select(Setup).where(Setup.user_id == user_id).order_by(Setup.created_at.desc())
     )
@@ -54,11 +56,11 @@ async def list_strategies(
 @router.post("/")
 async def create_strategy(
     strategy: StrategyCreate,
-    authorization: str = Header(None),
+    authorization: str | None = Header(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Create a new trading strategy."""
-    user_id = _get_user(authorization)
+    user_id = await _get_user(authorization)
 
     setup = Setup(
         user_id=user_id,
@@ -77,11 +79,11 @@ async def create_strategy(
 @router.get("/{strategy_id}")
 async def get_strategy(
     strategy_id: int,
-    authorization: str = Header(None),
+    authorization: str | None = Header(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Get a specific strategy."""
-    user_id = _get_user(authorization)
+    user_id = await _get_user(authorization)
     result = await db.execute(
         select(Setup).where(Setup.id == strategy_id, Setup.user_id == user_id)
     )
@@ -95,11 +97,11 @@ async def get_strategy(
 async def update_strategy(
     strategy_id: int,
     strategy: StrategyUpdate,
-    authorization: str = Header(None),
+    authorization: str | None = Header(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Update a strategy."""
-    user_id = _get_user(authorization)
+    user_id = await _get_user(authorization)
     result = await db.execute(
         select(Setup).where(Setup.id == strategy_id, Setup.user_id == user_id)
     )
@@ -124,11 +126,11 @@ async def update_strategy(
 @router.delete("/{strategy_id}")
 async def delete_strategy(
     strategy_id: int,
-    authorization: str = Header(None),
+    authorization: str | None = Header(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Delete a strategy."""
-    user_id = _get_user(authorization)
+    user_id = await _get_user(authorization)
     result = await db.execute(
         select(Setup).where(Setup.id == strategy_id, Setup.user_id == user_id)
     )
@@ -144,11 +146,11 @@ async def delete_strategy(
 @router.post("/{strategy_id}/activate")
 async def activate_strategy(
     strategy_id: int,
-    authorization: str = Header(None),
+    authorization: str | None = Header(None),
     db: AsyncSession = Depends(get_db),
 ):
     """Load a strategy into the StrategyRunner and start operating."""
-    user_id = _get_user(authorization)
+    user_id = await _get_user(authorization)
     result = await db.execute(
         select(Setup).where(Setup.id == strategy_id, Setup.user_id == user_id)
     )
