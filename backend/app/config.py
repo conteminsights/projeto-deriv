@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "change...n"
     DATABASE_URL: str = "sqlite+aiosqlite:///./data/zeek.db"
     REDIS_URL: str = "redis://localhost:6379"
-    DERIV_APP_ID: int = 24332
+    DERIV_APP_ID: int = 1089
     DERIV_WS_URL: str = "wss://ws.derivws.com/websockets/v3"
     DERIV_API_URL: str = "https://api.derivws.com"
     MONITOR_URL: str = "http://79.143.190.252:8765/api/v1"

@@ -9,10 +9,10 @@
 
 ### Endpoint
 ```
-wss://ws.derivws.com/websockets/v3?app_id=24332
+wss://ws.derivws.com/websockets/v3?app_id=1089
 ```
 
-O App ID `24332` é o usado pelo ZeeK.Bot. Você pode criar o seu próprio em:
+O App ID `1089` é o usado pelo ZeeK.Web.
 https://app.deriv.com/account/api-token
 
 ### Handshake
@@ -258,7 +258,7 @@ O ZeeK também suporta modo **Multiplicador**:
 class DerivClient:
     """Gerencia a conexão WebSocket com a Deriv."""
 
-    def __init__(self, app_id: int = 24332):
+    def __init__(self, app_id: int = 1089):
         self.app_id = app_id
         self.ws: WebSocket | None = None
         self.token: str | None = None

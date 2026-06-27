@@ -26,7 +26,7 @@ Informações extraídas do binário por engenharia reversa.
 
 ## Deriv
 
-- WebSocket: `wss://ws.derivws.com/websockets/v3?app_id=24332`
+- WebSocket: `wss://ws.derivws.com/websockets/v3?app_id=1089`
 - API REST: `https://api.derivws.com`
 - Mercados: R_100, R_75, R_50, R_25, R_10, 1HZ
 
@@ -75,6 +75,6 @@ Licença: servidor remoto 79.143.190.252:8765
 
 ## Notas
 
-- App ID 24332 é do ZeeK original. Criar próprio em https://app.deriv.com/account/api-token
+- App ID 1089
 - ZeeK.Bot original não é open source — engenharia reversa para aprendizado
 - Projeto verificado: 24 arquivos .py OK, 30+ arquivos essenciais presentes

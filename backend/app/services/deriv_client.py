@@ -20,7 +20,7 @@ class DerivClient:
     Manages a single WebSocket connection to the Deriv API.
     
     Usage:
-        client = DerivClient(app_id=24332)
+        client = DerivClient(app_id=1089)
         await client.connect()
         await client.authorize("your_pat_token")
         await client.subscribe_ticks("R_100")
@@ -37,7 +37,7 @@ class DerivClient:
         result = await client.buy_contract(proposal["id"], proposal["ask_price"])
     """
 
-    def __init__(self, app_id: int = 24332):
+    def __init__(self, app_id: int = 1089):
         self.app_id = app_id
         self.ws: websockets.WebSocketClientProtocol | None = None
         self.token: str | None = None

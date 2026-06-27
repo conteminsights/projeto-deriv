@@ -27,7 +27,7 @@
 ### WebSocket Principal
 ```
 wss://ws.derivws.com/websockets/v3
-App ID: 24332
+App ID: 1089
 ```
 
 ### API REST
@@ -41,7 +41,7 @@ https://api.derivws.com
 - Suporte a múltiplas contas por token (account switching)
 
 ### Fluxo de Conexão
-1. Abrir WebSocket para `wss://ws.derivws.com/websockets/v3?app_id=24332`
+1. Abrir WebSocket para `wss://ws.derivws.com/websockets/v3?app_id=1089`
 2. Enviar `authorize` com o token PAT
 3. Receber `authorize` response com `loginid`, `account_list`, `currency`, `balance`
 4. Inscrever em ticks: `{"subscribe": 1, "ticks": "<symbol>"}`

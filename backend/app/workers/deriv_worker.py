@@ -47,7 +47,7 @@ class DerivWorker:
         """Main loop: connect, authorize, keep alive."""
         while True:
             try:
-                self.client = DerivClient(app_id=24332)
+                self.client = DerivClient(app_id=1089)
 
                 # Wire callbacks
                 self.client.on_tick = self._on_tick

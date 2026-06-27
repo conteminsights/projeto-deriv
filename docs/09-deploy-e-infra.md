@@ -160,7 +160,7 @@ DATABASE_URL=postgresql+asyncpg://user:pass@host:5432/zeek
 
 # Opcionais
 REDIS_URL=redis://redis:6379
-DERIV_APP_ID=24332
+DERIV_APP_ID=1089
 CORS_ORIGINS=https://zeek.seusite.com
 MONITOR_ENABLED=false
 

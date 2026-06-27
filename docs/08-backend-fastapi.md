@@ -328,7 +328,7 @@ DATABASE_URL=sqlite+aiosqlite:///./zeek.db
 REDIS_URL=redis://localhost:6379
 
 # Deriv
-DERIV_APP_ID=24332
+DERIV_APP_ID=1089
 DERIV_WS_URL=wss://ws.derivws.com/websockets/v3
 DERIV_API_URL=https://api.derivws.com
 
