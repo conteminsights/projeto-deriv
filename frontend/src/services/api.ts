@@ -1,4 +1,4 @@
-// Serviço REST API para o backend ZeeK.Web
+// Serviço REST API para o backend Contêm Insights Trade
 import axios from 'axios'
 
 const api = axios.create({

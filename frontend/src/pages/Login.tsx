@@ -30,9 +30,8 @@ export function Login() {
     <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center p-4">
       <div className="bg-[#12121a] border border-[#1e1e2a] rounded-xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold tracking-tight">
-            <span className="text-[#f86525]">ZeeK</span>
-            <span className="text-white">.Web</span>
+          <h1 className="text-3xl font-bold tracking-tight text-white">
+            Contêm Insights <span className="text-[#f86525]">Trade</span>
           </h1>
           <p className="text-[#6b6b80] text-sm mt-1">Bot de Trading para Deriv</p>
         </div>

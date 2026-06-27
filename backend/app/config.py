@@ -6,7 +6,7 @@ from typing import List
 
 
 class Settings(BaseSettings):
-    APP_NAME: str = "ZeeK.Web"
+    APP_NAME: str = "Contem Insights Trade"
     DEBUG: bool = True
     SECRET_KEY: str = "change...n"
     DATABASE_URL: str = "sqlite+aiosqlite:///./data/zeek.db"

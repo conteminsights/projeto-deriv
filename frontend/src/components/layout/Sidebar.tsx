@@ -18,19 +18,13 @@ export function Sidebar() {
       {/* Logo */}
       <div className="p-4 border-b border-zeek-border">
         <div className="font-mono text-xs text-zeek-accent leading-tight">
-          ███████╗███████╗███████╗██╗  ██╗
+          C O N T Ê M
           <br />
-          ╚══███╔╝██╔════╝██╔════╝██║ ██╔╝
+          I N S I G H T S
           <br />
-          ███╔╝ █████╗  █████╗  █████╔╝
-          <br />
-          ███╔╝  ██╔══╝  ██╔══╝  ██╔═██╗
-          <br />
-          ███████╗███████╗██║  ██║
-          <br />
-          ╚══════╝╚══════╝╚═╝  ╚═╝
+          <span className="text-[#f86525]">T R A D E</span>
         </div>
-        <div className="text-xs text-zeek-text-muted mt-1">v1.0 — Web</div>
+        <div className="text-xs text-zeek-text-muted mt-1">v1.0</div>
       </div>
 
       {/* Nav */}

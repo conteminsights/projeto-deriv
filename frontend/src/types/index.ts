@@ -1,4 +1,4 @@
-// Tipos compartilhados para o frontend do ZeeK.Web
+// Tipos compartilhados para o frontend do Contêm Insights Trade
 
 // ─── Auth ──────────────────────────
 export interface LoginResponse {
