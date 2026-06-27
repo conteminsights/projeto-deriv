@@ -12,6 +12,7 @@ from app.api.router import api_router
 from app.core.database import engine, Base
 from app.api.ws import manager
 from app.workers.deriv_worker import deriv_worker
+from app.services.order_manager import order_manager
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +46,14 @@ async def broadcast_loop():
                 "type": "deriv_status",
                 "connected": deriv_worker.connected,
             })
+
+            # Broadcast latest trade results
+            if order_manager.trade_history:
+                last_trade = order_manager.trade_history[-1]
+                await manager.broadcast({
+                    "type": "trade_result",
+                    "contract": last_trade,
+                })
 
         except asyncio.CancelledError:
             break

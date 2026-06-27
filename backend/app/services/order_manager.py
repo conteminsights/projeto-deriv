@@ -90,30 +90,44 @@ class OrderManager:
             logger.error(f"Order failed: {e}")
             return None
 
-    async def monitor_contract(self, contract_id: str) -> Optional[dict]:
-        """Monitor a contract until it settles."""
+    async def monitor_contract(self, contract_id: str, poll_interval: float = 1.0, timeout: float = 300.0) -> Optional[dict]:
+        """Monitor a contract until it settles, polling periodically."""
         client = deriv_worker.client
         if not client:
             return None
 
-        try:
-            # Subscribe to contract updates via proposal_open_contract
-            msg = {"proposal_open_contract": 1, "contract_id": contract_id}
-            response = await client._send_and_wait(msg)
+        import time
+        deadline = time.time() + timeout
 
-            contract = response.get("proposal_open_contract", {})
-            status = contract.get("status")
+        while time.time() < deadline:
+            try:
+                msg = {"proposal_open_contract": 1, "contract_id": contract_id}
+                response = await client._send_and_wait(msg, timeout=10)
 
-            if status == "won" or status == "lost":
-                profit = contract.get("profit", 0)
-                self._settle_contract(contract_id, status, profit)
-                return contract
+                contract = response.get("proposal_open_contract", {})
+                status = contract.get("status")
 
-            return None
+                if status == "open":
+                    await asyncio.sleep(poll_interval)
+                    continue
 
-        except Exception as e:
-            logger.error(f"Monitor error: {e}")
-            return None
+                if status in ("won", "lost"):
+                    profit = contract.get("profit", 0)
+                    self._settle_contract(contract_id, status, profit)
+                    return contract
+
+                # Unknown status, keep waiting
+                await asyncio.sleep(poll_interval)
+
+            except asyncio.TimeoutError:
+                logger.warning(f"Monitor timeout for {contract_id}, retrying...")
+                continue
+            except Exception as e:
+                logger.error(f"Monitor error for {contract_id}: {e}")
+                return None
+
+        logger.warning(f"Monitor timeout after {timeout}s for {contract_id}")
+        return None
 
     def _settle_contract(self, contract_id: str, status: str, profit: float):
         """Mark a contract as settled."""

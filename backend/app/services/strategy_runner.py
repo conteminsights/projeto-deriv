@@ -128,15 +128,75 @@ class StrategyRunner:
         return [t["quote"] for t in history if t.get("quote") is not None]
 
     async def _execute_action(self, page, action: dict):
-        """Execute a trading signal."""
+        """Execute a trading signal: proposal -> buy -> monitor -> result -> bankroll."""
         stake = bankroll_manager.current_stake
+
+        # Check defense before placing order
+        defense = bankroll_manager.get_defense(page.id)
+        if not defense.should_operate():
+            logger.info(f"{page.name}: defesa bloqueou operação")
+            return
+
+        # Check limits
+        if bankroll_manager.check_limits():
+            logger.warning(f"{page.name}: limites globais excedidos, parando")
+            await self.stop()
+            return
+
+        # 1. Place order (proposal + buy)
         result = await order_manager.place_order(
             symbol=page.market,
             contract_type=action["contract_type"],
             stake=stake,
         )
-        if result:
-            page.active_contract_id = result.get("buy", {}).get("contract_id")
+        if not result or "error" in result:
+            logger.warning(f"{page.name}: ordem falhou")
+            return
+
+        contract_id = result.get("buy", {}).get("contract_id")
+        if not contract_id:
+            return
+
+        page.active_contract_id = contract_id
+        logger.info(f"{page.name}: ordem executada #{contract_id}")
+
+        # 2. Monitor contract until settlement
+        buy_price = result.get("buy", {}).get("buy_price", stake)
+        contract = await order_manager.monitor_contract(contract_id)
+        if not contract:
+            logger.warning(f"{page.name}: falha ao monitorar contrato")
+            return
+
+        # 3. Determine result
+        status = contract.get("status")
+        is_won = status == "won"
+        profit = contract.get("profit", 0)
+
+        if is_won:
+            profit_pct = (profit / buy_price) * 100
+        else:
+            profit_pct = ((profit - buy_price) / buy_price) * 100
+
+        logger.info(f"{page.name}: contrato {status}, profit={profit:.2f}")
+
+        # 4. Update bankroll
+        bankroll_manager.record_trade_result(profit)
+        bankroll_manager.calculate_next_stake(is_won)
+
+        # 5. Update page stats
+        page_manager.record_trade(page.id, profit)
+        defense.on_win() if is_won else defense.on_loss()
+
+        # 6. Notify Soros pairs if MASTER
+        bankroll_manager.notify_master_result(page.id, is_won)
+
+        # 7. Check mini-meta
+        if bankroll_manager.check_mini_meta():
+            logger.info(f"{page.name}: mini-meta atingida, parando")
+            await self.stop()
+
+        # 8. Check auto-reload
+        bankroll_manager.check_auto_reload()
 
 
 # Global singleton
