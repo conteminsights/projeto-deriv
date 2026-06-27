@@ -185,6 +185,30 @@ async def websocket_endpoint(websocket: WebSocket):
                         "message": "contract_id required",
                     })
 
+            elif action == "get_accounts":
+                await websocket.send_json({
+                    "type": "accounts",
+                    "accounts": deriv_worker.accounts,
+                    "current_loginid": deriv_worker.current_loginid,
+                })
+
+            elif action == "switch_account":
+                loginid = data.get("loginid", "")
+                if loginid and deriv_worker.client and deriv_worker.client.ws:
+                    # Switch by re-authorizing with the new loginid
+                    token = deriv_worker.client.token or ""
+                    resp = await deriv_worker.client.authorize(token)
+                    new_loginid = resp.get("authorize", {}).get("loginid")
+                    if new_loginid:
+                        deriv_worker.current_loginid = new_loginid
+                        # Re-subscribe balance for new account
+                        await deriv_worker.client.subscribe_balance()
+                    await websocket.send_json({
+                        "type": "account_switched",
+                        "loginid": new_loginid,
+                        "accounts": deriv_worker.accounts,
+                    })
+
             elif action == "stop_operating":
                 page_manager.stop_all()
                 await strategy_runner.stop()

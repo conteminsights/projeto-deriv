@@ -29,6 +29,8 @@ class DerivWorker:
         self.latest_ticks: dict[str, dict] = {}  # symbol -> last tick
         self.tick_history: dict[str, deque] = {}  # symbol -> deque of {epoch, quote}
         self.contract_updates: list[dict] = []
+        self.accounts: list[dict] = []  # list of {loginid, currency, is_virtual, ...}
+        self.current_loginid: Optional[str] = None
 
     async def start(self, token: str):
         """Start the worker with a PAT token. Connects and authorizes."""
@@ -59,7 +61,9 @@ class DerivWorker:
                 self.client.on_error = self._on_error
 
                 await self.client.connect()
-                await self.client.authorize(self._token)
+                resp = await self.client.authorize(self._token)
+                self.accounts = resp.get("authorize", {}).get("account_list", [])
+                self.current_loginid = resp.get("authorize", {}).get("loginid")
                 await self.client.subscribe_balance()
                 self.connected = True
                 logger.info("DerivWorker: connected and authorized")
@@ -71,6 +75,8 @@ class DerivWorker:
                 # Keep running — _message_loop keeps the connection alive
                 while self.client and self.client._running:
                     await asyncio.sleep(1)
+                    # Market watchdog: check for tick staleness every 30s
+                    await self._check_watchdog()
 
             except asyncio.CancelledError:
                 logger.info("DerivWorker: cancelled")
@@ -128,6 +134,21 @@ class DerivWorker:
 
     async def _on_error(self, error: dict):
         logger.error(f"Deriv error: {error}")
+
+    async def _check_watchdog(self):
+        """Market watchdog: re-subscribe if ticks are stale for >30s."""
+        import time
+        now = time.time()
+        for symbol in list(self.active_symbols):
+            tick = self.latest_ticks.get(symbol)
+            if tick and tick.get("epoch"):
+                age = now - tick["epoch"]
+                if age > 30 and self.client and self.connected:
+                    logger.warning(f"Watchdog: {symbol} stale for {age:.0f}s, re-subscribing")
+                    try:
+                        await self.client.subscribe_ticks(symbol)
+                    except Exception as e:
+                        logger.error(f"Watchdog re-subscribe failed: {e}")
 
 
 # Global singleton

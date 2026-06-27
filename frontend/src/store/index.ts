@@ -27,6 +27,8 @@ interface AppState {
   // UI
   isConnecting: boolean
   error: string | null
+  accounts: any[]
+  currentLoginid: string | null
 
   // Actions
   setAuth: (token: string, userId: number, email: string) => void
@@ -36,6 +38,7 @@ interface AppState {
   setBankroll: (data: BankrollResponse) => void
   setStrategies: (list: Strategy[]) => void
   setOperating: (active: boolean, pageId?: string) => void
+  setAccounts: (accounts: any[], loginid: string | null) => void
   setConnecting: (v: boolean) => void
   setError: (msg: string | null) => void
 }
@@ -52,6 +55,8 @@ export const useStore = create<AppState>((set, get) => ({
   strategies: [],
   operating: false,
   operatingPage: null,
+  accounts: [],
+  currentLoginid: null,
   isConnecting: false,
   error: null,
 
@@ -82,6 +87,7 @@ export const useStore = create<AppState>((set, get) => ({
   setBankroll: (data) => set({ bankroll: data }),
   setStrategies: (list) => set({ strategies: list }),
   setOperating: (active, pageId) => set({ operating: active, operatingPage: pageId || null }),
+  setAccounts: (accounts, loginid) => set({ accounts, currentLoginid: loginid }),
   setConnecting: (v) => set({ isConnecting: v }),
   setError: (msg) => set({ error: msg }),
 }))

@@ -95,6 +95,8 @@ export type WSMessage =
   | { type: 'trade_result'; contract: any }
   | { type: 'sell_result'; contract_id: string; result: any }
   | { type: 'cancel_result'; contract_id: string; result: any }
+  | { type: 'accounts'; accounts: any[]; current_loginid: string | null }
+  | { type: 'account_switched'; loginid: string | null; accounts: any[] }
 
 // ─── Bankroll ──────────────────────
 export interface BankrollConfig {

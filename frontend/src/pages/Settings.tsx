@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Save, Key, RefreshCw } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Save, Key, RefreshCw, UserCheck } from 'lucide-react'
 import { tokens, bankroll as bankrollApi } from '../services/api'
 import { useStore } from '../store'
 import { derivWS } from '../services/ws'
@@ -11,6 +11,14 @@ export function Settings() {
   const [msg, setMsg] = useState('')
   const bankroll = useStore((s) => s.bankroll)
   const derivConnected = useStore((s) => s.derivConnected)
+  const accounts = useStore((s) => s.accounts)
+
+  // Fetch accounts when connected
+  useEffect(() => {
+    if (derivConnected) {
+      derivWS.getAccounts()
+    }
+  }, [derivConnected])
 
   const saveToken = async () => {
     const token = patToken.trim()
@@ -82,6 +90,26 @@ export function Settings() {
           </button>
         </div>
       </div>
+
+      {/* Accounts */}
+      {accounts.length > 0 && (
+        <div className="bg-[#12121a] border border-[#1e1e2a] rounded-xl p-4">
+          <h2 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+            <UserCheck size={16} className="text-[#22c55e]" /> Contas
+          </h2>
+          <div className="space-y-1">
+            {accounts.map((acc: any) => (
+              <div
+                key={acc.loginid}
+                className="flex items-center justify-between px-3 py-2 rounded-lg text-sm bg-[#1a1a24]"
+              >
+                <span className="text-white font-mono">{acc.loginid}</span>
+                <span className="text-[#6b6b80]">{acc.currency} {acc.is_virtual ? '(Demo)' : '(Real)'}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Bankroll */}
       <div className="bg-[#12121a] border border-[#1e1e2a] rounded-xl p-4">

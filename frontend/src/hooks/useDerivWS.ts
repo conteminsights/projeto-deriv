@@ -9,6 +9,7 @@ export function useDerivWS() {
   const setDerivStatus = useStore((s) => s.setDerivStatus)
   const addTick = useStore((s) => s.addTick)
   const setOperating = useStore((s) => s.setOperating)
+  const setAccounts = useStore((s) => s.setAccounts)
   const setError = useStore((s) => s.setError)
 
   const callbackRef = useRef<(msg: WSMessage) => void>()
@@ -32,6 +33,9 @@ export function useDerivWS() {
           break
         case 'operating_status':
           setOperating(msg.operating, msg.page_id)
+          break
+        case 'accounts':
+          setAccounts(msg.accounts, msg.current_loginid)
           break
         case 'error':
           setError(msg.message)

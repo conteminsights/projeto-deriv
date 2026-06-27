@@ -100,6 +100,14 @@ class DerivWebSocket {
   cancelContract(contractId: string) {
     this.send('cancel_contract', { contract_id: contractId })
   }
+
+  getAccounts() {
+    this.send('get_accounts')
+  }
+
+  switchAccount(loginid: string) {
+    this.send('switch_account', { loginid })
+  }
 }
 
 export const derivWS = new DerivWebSocket()
