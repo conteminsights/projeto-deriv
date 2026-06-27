@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useStore } from '../store'
-import { useDerivWS } from '../hooks/useDerivWS'
 import { TradeChart } from '../components/TradeChart'
 import { derivWS } from '../services/ws'
 
@@ -10,8 +9,6 @@ export function OperationPage() {
   const [symbol, setSymbol] = useState('R_100')
   const [patToken, setPatToken] = useState('')
   const [selectedMarket, setSelectedMarket] = useState('R_100')
-
-  useDerivWS()
 
   const markets = ['R_100', 'R_75', 'R_50', 'R_25', 'R_10', '1HZ']
 

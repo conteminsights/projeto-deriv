@@ -1,6 +1,5 @@
 import { useEffect } from 'react'
 import { useStore } from '../store'
-import { useDerivWS } from '../hooks/useDerivWS'
 import { status as statusApi } from '../services/api'
 
 export function Dashboard() {
@@ -9,8 +8,6 @@ export function Dashboard() {
   const bankroll = useStore((s) => s.bankroll)
   const ticks = useStore((s) => s.ticks)
   const setBankroll = useStore((s) => s.setBankroll)
-
-  useDerivWS()
 
   useEffect(() => {
     statusApi.get().then((data) => {

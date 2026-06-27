@@ -1,8 +1,10 @@
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
+import { useDerivWS } from '../../hooks/useDerivWS'
 
 export function AppLayout() {
+  useDerivWS()
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
