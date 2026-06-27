@@ -92,6 +92,8 @@ export type WSMessage =
   | { type: 'operating_status'; operating: boolean; page_id?: string }
   | { type: 'tick_history'; symbol: string; ticks: Tick[] }
   | { type: 'trade_result'; contract: any }
+  | { type: 'sell_result'; contract_id: string; result: any }
+  | { type: 'cancel_result'; contract_id: string; result: any }
 
 // ─── Bankroll ──────────────────────
 export interface BankrollConfig {

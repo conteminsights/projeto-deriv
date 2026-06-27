@@ -110,6 +110,16 @@ class DerivClient:
         msg = {"buy": proposal_id, "price": price}
         return await self._send_and_wait(msg)
 
+    async def sell_contract(self, contract_id: str, price: float) -> dict:
+        """Sell a contract before expiry at a specified price."""
+        msg = {"sell": contract_id, "price": price}
+        return await self._send_and_wait(msg)
+
+    async def cancel_contract(self, contract_id: str) -> dict:
+        """Cancel a contract (P2P)."""
+        msg = {"cancel": contract_id}
+        return await self._send_and_wait(msg)
+
     async def forget(self, sub_id: str):
         """Unsubscribe from a stream."""
         return await self._send_and_wait({"forget": sub_id})

@@ -12,6 +12,7 @@ from app.core.security import decode_token
 from app.workers.deriv_worker import deriv_worker
 from app.services.page_manager import page_manager
 from app.services.strategy_runner import strategy_runner
+from app.services.order_manager import order_manager
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -152,6 +153,37 @@ async def websocket_endpoint(websocket: WebSocket):
                     "page_id": page_id,
                     "operating": operating,
                 })
+
+            elif action == "sell_contract":
+                contract_id = data.get("contract_id", "")
+                price = data.get("price", 0)
+                if contract_id and price > 0:
+                    result = await order_manager.sell_contract(contract_id, price)
+                    await websocket.send_json({
+                        "type": "sell_result",
+                        "contract_id": contract_id,
+                        "result": result,
+                    })
+                else:
+                    await websocket.send_json({
+                        "type": "error",
+                        "message": "contract_id and price required",
+                    })
+
+            elif action == "cancel_contract":
+                contract_id = data.get("contract_id", "")
+                if contract_id:
+                    result = await order_manager.cancel_contract(contract_id)
+                    await websocket.send_json({
+                        "type": "cancel_result",
+                        "contract_id": contract_id,
+                        "result": result,
+                    })
+                else:
+                    await websocket.send_json({
+                        "type": "error",
+                        "message": "contract_id required",
+                    })
 
             elif action == "stop_operating":
                 page_manager.stop_all()

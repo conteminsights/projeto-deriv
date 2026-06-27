@@ -149,6 +149,31 @@ class OrderManager:
     def open_count(self) -> int:
         return len(self.active_contracts)
 
+    async def sell_contract(self, contract_id: str, price: float) -> Optional[dict]:
+        """Sell an active contract before expiry."""
+        client = deriv_worker.client
+        if not client:
+            return None
+        try:
+            result = await client.sell_contract(contract_id, price)
+            if "error" not in result:
+                self._settle_contract(contract_id, "sold", price)
+            return result
+        except Exception as e:
+            logger.error(f"Sell error: {e}")
+            return None
+
+    async def cancel_contract(self, contract_id: str) -> Optional[dict]:
+        """Cancel a contract."""
+        client = deriv_worker.client
+        if not client:
+            return None
+        try:
+            return await client.cancel_contract(contract_id)
+        except Exception as e:
+            logger.error(f"Cancel error: {e}")
+            return None
+
 
 # Global singleton
 order_manager = OrderManager()

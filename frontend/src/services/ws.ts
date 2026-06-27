@@ -92,6 +92,14 @@ class DerivWebSocket {
   stopOperating() {
     this.send('stop_operating')
   }
+
+  sellContract(contractId: string, price: number) {
+    this.send('sell_contract', { contract_id: contractId, price })
+  }
+
+  cancelContract(contractId: string) {
+    this.send('cancel_contract', { contract_id: contractId })
+  }
 }
 
 export const derivWS = new DerivWebSocket()
