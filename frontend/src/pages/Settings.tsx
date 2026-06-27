@@ -12,12 +12,13 @@ export function Settings() {
   const bankroll = useStore((s) => s.bankroll)
 
   const saveToken = async () => {
-    if (!patToken) return
+    const token = patToken.trim()
+    if (!token) return
     setSaving(true)
     try {
-      await tokens.create(patToken, 'default')
+      await tokens.create(token, 'default')
       setMsg('Token salvo! Conectando...')
-      derivWS.connectDeriv(patToken)
+      derivWS.connectDeriv(token)
       setPatToken('')
     } catch (e: any) {
       setMsg(e.response?.data?.detail || 'Erro ao salvar token')
@@ -29,12 +30,13 @@ export function Settings() {
   const connectDeriv = async () => {
     setLoading(true)
     try {
-      if (!patToken) {
+      const token = patToken.trim()
+      if (!token) {
         setMsg('Digite o token PAT no campo acima e clique em Salvar')
         setLoading(false)
         return
       }
-      derivWS.connectDeriv(patToken)
+      derivWS.connectDeriv(token)
       setMsg('Conectando à Deriv...')
     } finally {
       setLoading(false)
