@@ -354,3 +354,69 @@ A interface do ZeeK 3.1 tem:
 8. **Modo VPS:** Para execução em servidor (sem UI ativa)
 9. **Defesa BARREIRA:** Só opera após X losses consecutivos
 10. **Soros SLAVE:** Copia operações do MASTER com barreira
+
+---
+
+## 1.12 Gap Analysis — Original vs Contêm Insights Trade
+
+> Atualizado: 27/06/2026
+
+### Tipos de Contrato (Deriv API)
+
+A Deriv oferece **34 tipos de contrato** via API WebSocket. Abaixo o que o ZeeK original suportava vs o que implementamos:
+
+| Tipo | Descrição | ZeeK Original | Contêm Insights Trade |
+|------|-----------|:---:|:---:|
+| **CALL** | Rise (aposta na subida) | ✅ | ✅ |
+| **PUT** | Fall (aposta na descida) | ✅ | ✅ |
+| **MULTUP** | Multiplier UP | ✅ | ✅ |
+| **MULTDOWN** | Multiplier DOWN | ✅ | ✅ |
+| **ACCU** | Accumulator | ❌ | ❌ |
+| **ASIAND / ASIANU** | Asian Down/Up | ❌ | ❌ |
+| **CALLE / PUTE** | Ends In/Out | ❌ | ❌ |
+| **DIGITMATCH / DIGITDIFF** | Digits Match/Diff | ❌ | ❌ |
+| **DIGITEVEN / DIGITODD** | Digits Even/Odd | ❌ | ❌ |
+| **DIGITOVER / DIGITUNDER** | Digits Over/Under | ❌ | ❌ |
+| **EXPIRYMISS / EXPIRYRANGE** | Expiry | ❌ | ❌ |
+| **LBFLOATCALL / LBFLOATPUT** | Lookback Float | ❌ | ❌ |
+| **LBHIGHLOW** | Lookback High/Low | ❌ | ❌ |
+| **NOTOUCH / ONETOUCH** | Touch/No Touch | ❌ | ❌ |
+| **RANGE** | Range | ❌ | ❌ |
+| **RESETCALL / RESETPUT** | Reset Call/Put | ❌ | ❌ |
+| **RUNHIGH / RUNLOW** | Run High/Low | ❌ | ❌ |
+| **TICKHIGH / TICKLOW** | Tick High/Low | ❌ | ❌ |
+| **TURBOSLONG / TURBOSSHORT** | Turbos Long/Short | ❌ | ❌ |
+| **UPORDOWN** | Up or Down | ❌ | ❌ |
+| **VANILLALONGCALL / VANILLALONGPUT** | Vanilla Long Call/Put | ❌ | ❌ |
+
+### Funcionalidades
+
+| Funcionalidade | ZeeK Original | Contêm Insights Trade |
+|----------------|:---:|:---:|
+| Conexão WS com Deriv | ✅ | ✅ |
+| CUSTOM Strategy (indicadores) | ✅ | ✅ |
+| Múltiplas páginas (abas) | ✅ | ✅ |
+| Martingale | ✅ | ✅ |
+| Multiplicador de stake | ✅ | ✅ |
+| Ajustável ao lucro | ✅ | ✅ |
+| Mini-meta | ✅ | ✅ |
+| Mxm entradas | ✅ | ✅ |
+| Auto-reload | ✅ | ✅ |
+| Limites globais | ✅ | ✅ |
+| Defesa BARREIRA | ✅ | ✅ |
+| Soros MASTER/SLAVE | ✅ | ✅ |
+| Pattern Analysis | ✅ | ✅ |
+| Calculadora | ✅ | ✅ |
+| Setup Manager | ✅ | ✅ |
+| Histórico de ticks (200 ticks) | ❌ | ✅ |
+| Botão Operar ON/OFF | ✅ | ✅ |
+| Ciclo completo Proposal→Buy→Result→Bankroll | ✅ | ✅ |
+| Sell / Cancel | ✅ | ✅ |
+| Multi-account switcher | ✅ | ✅ |
+| Market watchdog | ✅ | ✅ |
+| Gráfico com indicadores (Lightweight Charts) | ❌ | ✅ |
+| Log do sistema com compactação | ✅ | ❌ |
+| Heartbeat monitor | ✅ | ❌ |
+| Modo VPS | ✅ | ❌ |
+| Reset controlado (pausa 60s) | ✅ | ❌ |
+| Licenciamento | ✅ | ❌ (não aplicável) |
