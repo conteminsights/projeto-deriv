@@ -10,6 +10,7 @@ export function Settings() {
   const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState('')
   const bankroll = useStore((s) => s.bankroll)
+  const derivConnected = useStore((s) => s.derivConnected)
 
   const saveToken = async () => {
     const token = patToken.trim()
@@ -51,6 +52,14 @@ export function Settings() {
   return (
     <div className="max-w-2xl space-y-4">
       <h1 className="text-xl font-bold text-white">Configurações</h1>
+
+      {/* Connection Status */}
+      <div className="flex items-center gap-2 text-sm mb-3">
+        <span className={`w-2.5 h-2.5 rounded-full ${derivConnected ? 'bg-green-400' : 'bg-[#4a4a5a]'}`} />
+        <span className={derivConnected ? 'text-green-400' : 'text-[#6b6b80]'}>
+          {derivConnected ? 'Conectado à Deriv' : 'Desconectado'}
+        </span>
+      </div>
 
       {/* Token PAT */}
       <div className="bg-[#12121a] border border-[#1e1e2a] rounded-xl p-4">
