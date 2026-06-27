@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Save, Key, RefreshCw } from 'lucide-react'
 import { tokens, bankroll as bankrollApi } from '../services/api'
 import { useStore } from '../store'
@@ -7,16 +7,25 @@ import { derivWS } from '../services/ws'
 export function Settings() {
   const [patToken, setPatToken] = useState('')
   const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [msg, setMsg] = useState('')
+  const [savedTokens, setSavedTokens] = useState<any[]>([])
   const bankroll = useStore((s) => s.bankroll)
+
+  useEffect(() => {
+    tokens.list().then(setSavedTokens).catch(() => {})
+  }, [])
 
   const saveToken = async () => {
     if (!patToken) return
     setSaving(true)
     try {
       await tokens.create(patToken, 'default')
-      setMsg('Token salvo com sucesso!')
+      setMsg('Token salvo! Conectando...')
+      derivWS.connectDeriv(patToken)
       setPatToken('')
+      const list = await tokens.list()
+      setSavedTokens(list)
     } catch (e: any) {
       setMsg(e.response?.data?.detail || 'Erro ao salvar token')
     } finally {
@@ -24,10 +33,22 @@ export function Settings() {
     }
   }
 
-  const connectDeriv = () => {
-    if (patToken) {
-      derivWS.connectDeriv(patToken)
+  const connectDeriv = async () => {
+    setLoading(true)
+    try {
+      let tokenToUse = patToken
+      if (!tokenToUse && savedTokens.length > 0) {
+        tokenToUse = savedTokens[0].token_value
+      }
+      if (!tokenToUse) {
+        setMsg('Digite um token PAT ou salve um primeiro')
+        setLoading(false)
+        return
+      }
+      derivWS.connectDeriv(tokenToUse)
       setMsg('Conectando à Deriv...')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -56,7 +77,7 @@ export function Settings() {
           <button onClick={saveToken} disabled={saving || !patToken} className="bg-[#f86525] hover:bg-[#e05515] disabled:opacity-50 text-white px-4 py-2 rounded-lg text-sm transition-colors">
             <Save size={16} />
           </button>
-          <button onClick={connectDeriv} disabled={!patToken} className="bg-[#1a1a24] border border-[#2a2a3a] text-white px-4 py-2 rounded-lg text-sm hover:border-[#f86525]/30 transition-colors">
+          <button onClick={connectDeriv} disabled={loading || (!patToken && savedTokens.length === 0)} className="bg-[#1a1a24] border border-[#2a2a3a] text-white px-4 py-2 rounded-lg text-sm hover:border-[#f86525]/30 transition-colors">
             Conectar
           </button>
         </div>
