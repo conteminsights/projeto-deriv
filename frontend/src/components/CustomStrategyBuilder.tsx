@@ -146,11 +146,13 @@ export function CustomStrategyBuilder({ rules, onChange, mode, onModeChange }: P
           <div className="flex gap-2">
             <select
               value={rule.contract_type}
-              onChange={(e) => updateRule(i, { ...rule, contract_type: e.target.value as 'CALL' | 'PUT' })}
+              onChange={(e) => updateRule(i, { ...rule, contract_type: e.target.value as any })}
               className="bg-[#12121a] border border-[#2a2a3a] rounded px-2 py-1.5 text-xs text-white"
             >
               <option value="CALL">CALL</option>
               <option value="PUT">PUT</option>
+              <option value="MULTUP">MULTI ▲</option>
+              <option value="MULTDOWN">MULTI ▼</option>
             </select>
             <input
               type="number"
@@ -168,6 +170,17 @@ export function CustomStrategyBuilder({ rules, onChange, mode, onModeChange }: P
               <option value="m">Minutos</option>
               <option value="h">Horas</option>
             </select>
+            {(rule.contract_type === 'MULTUP' || rule.contract_type === 'MULTDOWN') && (
+              <input
+                type="number"
+                value={rule.multiplier || 10}
+                onChange={(e) => updateRule(i, { ...rule, multiplier: parseInt(e.target.value) || 10 })}
+                className="bg-[#12121a] border border-[#2a2a3a] rounded px-2 py-1.5 text-xs text-white w-20"
+                placeholder="Mult."
+                min={1}
+                max={1000}
+              />
+            )}
           </div>
         </div>
       ))}

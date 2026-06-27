@@ -41,9 +41,10 @@ export interface TriggerCondition {
 
 export interface Rule {
   condition: TriggerCondition
-  contract_type: 'CALL' | 'PUT'
+  contract_type: 'CALL' | 'PUT' | 'MULTUP' | 'MULTDOWN'
   duration: number
   duration_unit: string
+  multiplier?: number
 }
 
 export interface PageConfig {

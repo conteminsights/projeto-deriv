@@ -68,16 +68,23 @@ class Rule:
     """A complete CUSTOM rule."""
 
     def __init__(self, condition: TriggerCondition, contract_type: str,
-                 duration: int = 1, duration_unit: str = "t"):
+                 duration: int = 1, duration_unit: str = "t",
+                 multiplier: int = 0):
         self.condition = condition
         self.contract_type = contract_type
         self.duration = duration
         self.duration_unit = duration_unit
+        self.multiplier = multiplier  # > 0 for MULTIPLIER mode
 
-    def evaluate(self, prices: List[float]) -> Optional[str]:
-        """Returns contract_type if condition met, None otherwise."""
+    def evaluate(self, prices: List[float]) -> Optional[dict]:
+        """Returns action dict if condition met, None otherwise."""
         if self.condition.evaluate(prices):
-            return self.contract_type
+            return {
+                "contract_type": self.contract_type,
+                "duration": self.duration,
+                "duration_unit": self.duration_unit,
+                "multiplier": self.multiplier,
+            }
         return None
 
 
@@ -106,10 +113,12 @@ class StrategyEngine:
 
         if page["mode"] == "AND":
             if all(r is not None for r in results):
-                return {"contract_type": results[0]}  # Use first rule's type
+                action = results[0]
+                # Ensure multiplier is set from the first matching rule
+                return action
             return None
         else:  # OR
             for rule, signal in zip(page["rules"], results):
                 if signal:
-                    return {"contract_type": signal}
+                    return signal
             return None

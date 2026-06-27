@@ -35,9 +35,11 @@ class OrderManager:
         stake: float,
         duration: int = 1,
         duration_unit: str = "t",
+        multiplier: int = 0,
     ) -> Optional[dict]:
         """
         Place a trade order.
+        Supports CALL/PUT and MULTIPLIER (MULTUP/MULTDOWN) contract types.
         Returns the contract result dict or None on failure.
         """
         client = deriv_worker.client
@@ -46,15 +48,22 @@ class OrderManager:
             return None
 
         try:
-            # 1. Get proposal
-            proposal = await client.get_proposal({
+            # Build proposal params based on contract type
+            params = {
                 "contract_type": contract_type,
                 "amount": stake,
                 "duration": duration,
                 "duration_unit": duration_unit,
                 "symbol": symbol,
                 "currency": "USD",
-            })
+            }
+
+            # Add multiplier-specific params
+            if multiplier > 0:
+                params["multiplier"] = multiplier
+
+            # 1. Get proposal
+            proposal = await client.get_proposal(params)
 
             if "error" in proposal:
                 logger.error(f"Proposal error: {proposal['error']}")

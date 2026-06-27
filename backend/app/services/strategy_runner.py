@@ -55,6 +55,7 @@ class StrategyRunner:
                     contract_type=r.get("contract_type", "CALL"),
                     duration=r.get("duration", 1),
                     duration_unit=r.get("duration_unit", "t"),
+                    multiplier=r.get("multiplier", 0),
                 )
                 rules.append(rule)
 
@@ -148,6 +149,9 @@ class StrategyRunner:
             symbol=page.market,
             contract_type=action["contract_type"],
             stake=stake,
+            duration=action.get("duration", 1),
+            duration_unit=action.get("duration_unit", "t"),
+            multiplier=action.get("multiplier", 0),
         )
         if not result or "error" in result:
             logger.warning(f"{page.name}: ordem falhou")
