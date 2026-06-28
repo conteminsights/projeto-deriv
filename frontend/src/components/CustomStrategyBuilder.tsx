@@ -153,6 +153,10 @@ export function CustomStrategyBuilder({ rules, onChange, mode, onModeChange }: P
               <option value="PUT">PUT</option>
               <option value="MULTUP">MULTI ▲</option>
               <option value="MULTDOWN">MULTI ▼</option>
+              <option value="DIGITODD">ÍMPAR (Odd)</option>
+              <option value="DIGITEVEN">PAR (Even)</option>
+              <option value="DIGITOVER">≥ Dígito (Over)</option>
+              <option value="DIGITUNDER">≤ Dígito (Under)</option>
             </select>
             <input
               type="number"
@@ -179,6 +183,17 @@ export function CustomStrategyBuilder({ rules, onChange, mode, onModeChange }: P
                 placeholder="Mult."
                 min={1}
                 max={1000}
+              />
+            )}
+            {(rule.contract_type === 'DIGITOVER' || rule.contract_type === 'DIGITUNDER') && (
+              <input
+                type="number"
+                value={rule.barrier ?? 5}
+                onChange={(e) => updateRule(i, { ...rule, barrier: parseInt(e.target.value) || 5 })}
+                className="bg-[#12121a] border border-[#2a2a3a] rounded px-2 py-1.5 text-xs text-white w-20"
+                placeholder="Dígito"
+                min={0}
+                max={9}
               />
             )}
           </div>

@@ -36,10 +36,11 @@ class OrderManager:
         duration: int = 1,
         duration_unit: str = "t",
         multiplier: int = 0,
+        barrier: int = 0,
     ) -> Optional[dict]:
         """
         Place a trade order.
-        Supports CALL/PUT and MULTIPLIER (MULTUP/MULTDOWN) contract types.
+        Supports CALL/PUT, MULTIPLIER (MULTUP/MULTDOWN), and DIGIT (DIGITODD/DIGITEVEN/DIGITOVER/DIGITUNDER) contract types.
         Returns the contract result dict or None on failure.
         """
         client = deriv_worker.client
@@ -52,6 +53,7 @@ class OrderManager:
             params = {
                 "contract_type": contract_type,
                 "amount": stake,
+                "basis": "stake",
                 "duration": duration,
                 "duration_unit": duration_unit,
                 "symbol": symbol,
@@ -61,6 +63,10 @@ class OrderManager:
             # Add multiplier-specific params
             if multiplier > 0:
                 params["multiplier"] = multiplier
+
+            # Add barrier for DIGITOVER/DIGITUNDER
+            if contract_type in ("DIGITOVER", "DIGITUNDER") and barrier > 0:
+                params["barrier"] = barrier
 
             # 1. Get proposal
             proposal = await client.get_proposal(params)

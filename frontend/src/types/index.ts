@@ -41,10 +41,11 @@ export interface TriggerCondition {
 
 export interface Rule {
   condition: TriggerCondition
-  contract_type: 'CALL' | 'PUT' | 'MULTUP' | 'MULTDOWN'
+  contract_type: 'CALL' | 'PUT' | 'MULTUP' | 'MULTDOWN' | 'DIGITODD' | 'DIGITEVEN' | 'DIGITOVER' | 'DIGITUNDER'
   duration: number
   duration_unit: string
   multiplier?: number
+  barrier?: number
 }
 
 export interface PageConfig {
@@ -97,6 +98,10 @@ export type WSMessage =
   | { type: 'cancel_result'; contract_id: string; result: any }
   | { type: 'accounts'; accounts: any[]; current_loginid: string | null }
   | { type: 'account_switched'; loginid: string | null; accounts: any[] }
+  | { type: 'mini_meta'; status: string; profit: number }
+  | { type: 'controlled_reset'; reason: string; message: string }
+  | { type: 'controlled_reset_done'; reason: string; message: string }
+  | { type: 'strategy_loaded'; name: string; pages_count: number }
 
 // ─── Bankroll ──────────────────────
 export interface BankrollConfig {

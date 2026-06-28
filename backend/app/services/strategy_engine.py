@@ -69,12 +69,13 @@ class Rule:
 
     def __init__(self, condition: TriggerCondition, contract_type: str,
                  duration: int = 1, duration_unit: str = "t",
-                 multiplier: int = 0):
+                 multiplier: int = 0, barrier: int = 0):
         self.condition = condition
         self.contract_type = contract_type
         self.duration = duration
         self.duration_unit = duration_unit
         self.multiplier = multiplier  # > 0 for MULTIPLIER mode
+        self.barrier = barrier  # digit 0-9 for DIGITOVER/DIGITUNDER
 
     def evaluate(self, prices: List[float]) -> Optional[dict]:
         """Returns action dict if condition met, None otherwise."""
@@ -84,6 +85,7 @@ class Rule:
                 "duration": self.duration,
                 "duration_unit": self.duration_unit,
                 "multiplier": self.multiplier,
+                "barrier": self.barrier,
             }
         return None
 

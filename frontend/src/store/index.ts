@@ -29,6 +29,8 @@ interface AppState {
   error: string | null
   accounts: any[]
   currentLoginid: string | null
+  miniMetaReached: { profit: number; active: boolean } | null
+  controlledReset: { reason: string; message: string; active: boolean } | null
 
   // Actions
   setAuth: (token: string, userId: number, email: string) => void
@@ -41,6 +43,8 @@ interface AppState {
   setAccounts: (accounts: any[], loginid: string | null) => void
   setConnecting: (v: boolean) => void
   setError: (msg: string | null) => void
+  setMiniMetaReached: (data: { profit: number; active: boolean }) => void
+  setControlledReset: (data: { reason: string; message: string; active: boolean }) => void
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -57,6 +61,8 @@ export const useStore = create<AppState>((set, get) => ({
   operatingPage: null,
   accounts: [],
   currentLoginid: null,
+  miniMetaReached: null,
+  controlledReset: null,
   isConnecting: false,
   error: null,
 
@@ -90,4 +96,6 @@ export const useStore = create<AppState>((set, get) => ({
   setAccounts: (accounts, loginid) => set({ accounts, currentLoginid: loginid }),
   setConnecting: (v) => set({ isConnecting: v }),
   setError: (msg) => set({ error: msg }),
+  setMiniMetaReached: (data) => set({ miniMetaReached: data }),
+  setControlledReset: (data) => set({ controlledReset: data }),
 }))

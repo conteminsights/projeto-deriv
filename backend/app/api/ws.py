@@ -5,6 +5,7 @@ Connects frontend clients to the DerivWorker for real-time ticks,
 balance updates, and contract status.
 """
 import json
+import asyncio
 import logging
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
@@ -13,6 +14,7 @@ from app.workers.deriv_worker import deriv_worker
 from app.services.page_manager import page_manager
 from app.services.strategy_runner import strategy_runner
 from app.services.order_manager import order_manager
+from app.services.bankroll import bankroll_manager
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -124,8 +126,12 @@ async def websocket_endpoint(websocket: WebSocket):
                 })
 
             elif action == "connect_deriv":
-                pat_token = data.get("pat_token", "")
+                pat_token = data.get("pat_token", "").strip()
                 if pat_token:
+                    # Stop any existing connection
+                    await deriv_worker.stop()
+                    # Small delay before starting fresh
+                    await asyncio.sleep(0.5)
                     await deriv_worker.start(pat_token)
                     await websocket.send_json({
                         "type": "deriv_connecting",
@@ -153,6 +159,64 @@ async def websocket_endpoint(websocket: WebSocket):
                     "page_id": page_id,
                     "operating": operating,
                 })
+
+            elif action == "load_strategy":
+                strategy_id = data.get("strategy_id")
+                if not strategy_id:
+                    await websocket.send_json({
+                        "type": "error",
+                        "message": "strategy_id required",
+                    })
+                    continue
+
+                from app.core.database import async_session
+                from app.models.setup import Setup
+                from sqlalchemy import select
+
+                async with async_session() as db:
+                    result = await db.execute(
+                        select(Setup).where(Setup.id == strategy_id)
+                    )
+                    setup = result.scalar_one_or_none()
+                    if not setup:
+                        await websocket.send_json({
+                            "type": "error",
+                            "message": "Estratégia não encontrada",
+                        })
+                        continue
+
+                    # Stop current runner and clear pages
+                    await strategy_runner.stop()
+                    page_manager.pages.clear()
+
+                    # Load the new setup
+                    strategy_runner.load_setup(
+                        pages_data=setup.pages_data or "[]",
+                        management_data=setup.management_data or "{}",
+                    )
+
+                    # Re-engage auto-reload from management config
+                    if setup.management_data:
+                        mgmt = json.loads(setup.management_data)
+                        bankroll_manager.mini_meta.enabled = mgmt.get("mini_meta_enabled", False)
+                        bankroll_manager.mini_meta.profit_target = mgmt.get("mini_meta_target", 50.0)
+                        bankroll_manager.mini_meta.max_entries = mgmt.get("mini_meta_max_entries", 0)
+                        bankroll_manager.auto_reload.enabled = mgmt.get("auto_reload_enabled", False)
+                        bankroll_manager.auto_reload.reload_after_minutes = mgmt.get("auto_reload_minutes", 30)
+                        bankroll_manager.auto_reload.reload_after_entries = mgmt.get("auto_reload_entries", 0)
+                        bankroll_manager.limits.enabled = mgmt.get("limits_enabled", False)
+                        bankroll_manager.limits.daily_loss_limit = mgmt.get("daily_loss_limit", 0)
+                        bankroll_manager.limits.daily_profit_target = mgmt.get("daily_profit_target", 0)
+                        bankroll_manager.limits.session_loss_limit = mgmt.get("session_loss_limit", 0)
+                        bankroll_manager.limits.consecutive_loss_limit = mgmt.get("consecutive_loss_limit", 0)
+
+                    pages_count = len(json.loads(setup.pages_data or "[]"))
+                    await websocket.send_json({
+                        "type": "strategy_loaded",
+                        "name": setup.name,
+                        "pages_count": pages_count,
+                    })
+                    logger.info(f"Strategy loaded via WS: {setup.name} ({pages_count} pages)")
 
             elif action == "sell_contract":
                 contract_id = data.get("contract_id", "")

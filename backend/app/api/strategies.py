@@ -2,6 +2,7 @@
 ZeeK.Web — Strategy CRUD Endpoints
 """
 import json
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,6 +13,9 @@ from app.models.setup import Setup
 from app.schemas.strategy import StrategyCreate, StrategyUpdate
 from app.services.page_manager import page_manager
 from app.services.strategy_runner import strategy_runner
+from app.services.bankroll import bankroll_manager
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -163,6 +167,29 @@ async def activate_strategy(
         management_data=setup.management_data or "{}",
     )
     strategy_runner.start()
+
+    # Sync bankroll config from management_data
+    if setup.management_data:
+        mgmt = json.loads(setup.management_data)
+        bankroll_manager.initial_stake = mgmt.get("initial_stake", 2.0)
+        bankroll_manager.current_stake = mgmt.get("initial_stake", 2.0)
+        bankroll_manager.mini_meta.enabled = mgmt.get("mini_meta_enabled", False)
+        bankroll_manager.mini_meta.profit_target = mgmt.get("mini_meta_target", 50.0)
+        bankroll_manager.mini_meta.max_entries = mgmt.get("mini_meta_max_entries", 0)
+        bankroll_manager.auto_reload.enabled = mgmt.get("auto_reload_enabled", False)
+        bankroll_manager.auto_reload.reload_after_minutes = mgmt.get("auto_reload_minutes", 30)
+        bankroll_manager.auto_reload.reload_after_entries = mgmt.get("auto_reload_entries", 0)
+        bankroll_manager.limits.enabled = mgmt.get("limits_enabled", False)
+        bankroll_manager.limits.daily_loss_limit = mgmt.get("daily_loss_limit", 0)
+        bankroll_manager.limits.daily_profit_target = mgmt.get("daily_profit_target", 0)
+        bankroll_manager.limits.session_loss_limit = mgmt.get("session_loss_limit", 0)
+        bankroll_manager.limits.consecutive_loss_limit = mgmt.get("consecutive_loss_limit", 0)
+        bankroll_manager.martingale.enabled = mgmt.get("martingale_enabled", False)
+        bankroll_manager.martingale.multiplier = mgmt.get("martingale_multiplier", 2.0)
+        bankroll_manager.martingale.max_steps = mgmt.get("martingale_max_steps", 5)
+        bankroll_manager.multiplier.enabled = mgmt.get("multiplier_enabled", False)
+        bankroll_manager.multiplier.value = mgmt.get("multiplier_value", 2.0)
+        logger.info(f"Bankroll config synced from strategy '{setup.name}'")
 
     return {"message": f"Strategy '{setup.name}' activated", "active": True}
 

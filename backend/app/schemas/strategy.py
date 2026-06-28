@@ -17,9 +17,11 @@ class TriggerConditionSchema(BaseModel):
 
 class RuleSchema(BaseModel):
     condition: TriggerConditionSchema
-    contract_type: str   # CALL, PUT
+    contract_type: str   # CALL, PUT, MULTUP, MULTDOWN, DIGITODD, DIGITEVEN, DIGITOVER, DIGITUNDER
     duration: int = 1
     duration_unit: str = "t"  # t=tick, m=minute, h=hour
+    multiplier: int = 0  # > 0 for MULTIPLIER mode
+    barrier: int = 0  # digit 0-9 for DIGITOVER/DIGITUNDER; 0 = not used
 
 
 class PageConfigSchema(BaseModel):
@@ -39,6 +41,18 @@ class ManagementConfigSchema(BaseModel):
     defense_mode: str = "none"  # none, barrier, soros
     profit_target: Optional[float] = None
     loss_limit: Optional[float] = None
+    # New management fields
+    mini_meta_enabled: bool = False
+    mini_meta_target: float = 50.0
+    mini_meta_max_entries: int = 0
+    auto_reload_enabled: bool = False
+    auto_reload_minutes: int = 30
+    auto_reload_entries: int = 0
+    limits_enabled: bool = False
+    daily_loss_limit: float = 0
+    daily_profit_target: float = 0
+    session_loss_limit: float = 0
+    consecutive_loss_limit: int = 0
 
 
 class StrategyCreate(BaseModel):

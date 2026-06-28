@@ -11,6 +11,8 @@ export function useDerivWS() {
   const setOperating = useStore((s) => s.setOperating)
   const setAccounts = useStore((s) => s.setAccounts)
   const setError = useStore((s) => s.setError)
+  const setMiniMetaReached = useStore((s) => s.setMiniMetaReached)
+  const setControlledReset = useStore((s) => s.setControlledReset)
 
   const callbackRef = useRef<(msg: WSMessage) => void>()
 
@@ -36,6 +38,18 @@ export function useDerivWS() {
           break
         case 'accounts':
           setAccounts(msg.accounts, msg.current_loginid)
+          break
+        case 'mini_meta':
+          if (msg.status === 'reached') {
+            setMiniMetaReached({ profit: msg.profit, active: true })
+          }
+          break
+        case 'controlled_reset':
+          setControlledReset({ reason: msg.reason, message: msg.message, active: true })
+          break
+        case 'controlled_reset_done':
+          setControlledReset({ reason: msg.reason, message: msg.message, active: false })
+          setMiniMetaReached({ profit: 0, active: false })
           break
         case 'error':
           setError(msg.message)

@@ -5,6 +5,7 @@ Gerencia stake, Martingale, Multiplicador, Soros (MASTER/SLAVE),
 Defesa (BARREIRA), mini-meta, limites globais e auto-reload.
 """
 import logging
+import time
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -257,9 +258,17 @@ class BankrollManager:
         if not self.auto_reload.enabled:
             return False
 
+        # Check entries-based reload
         if self.auto_reload.reload_after_entries > 0:
             if self.session_entries >= self.auto_reload.reload_after_entries:
-                self._do_reload("entries")
+                logger.info(f"Auto-reload acionado por entries: {self.session_entries}")
+                return True
+
+        # Check minutes-based reload (tracked via session_profit changes)
+        if self.auto_reload.reload_after_minutes > 0:
+            elapsed = time.time() - getattr(self, '_session_start', time.time())
+            if elapsed >= self.auto_reload.reload_after_minutes * 60:
+                logger.info(f"Auto-reload acionado por tempo: {elapsed/60:.0f}min")
                 return True
 
         return False
@@ -288,6 +297,7 @@ class BankrollManager:
         self.consecutive_losses = 0
         self.martingale_step = 0
         self.current_stake = self.initial_stake
+        self._session_start = time.time()
         for defense in self.defenses.values():
             defense.consecutive_losses = 0
             defense.waiting_for_barrier = False

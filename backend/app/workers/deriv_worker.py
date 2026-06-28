@@ -2,7 +2,7 @@
 ZeeK.Web — Deriv Worker (Background Connection Manager)
 
 Manages the DerivClient lifecycle: connect, authorize, reconnect on failure,
-and expose current state (ticks, balance, connection status) to the rest of the app.
+with exponential backoff. Stops reconnecting on invalid token errors.
 """
 import asyncio
 import logging
@@ -21,6 +21,8 @@ class DerivWorker:
         self.client: Optional[DerivClient] = None
         self._task: Optional[asyncio.Task] = None
         self._token: Optional[str] = None
+        self._retry_delay: float = 1.0  # starts at 1s, exponential backoff
+        self._max_retry_delay: float = 60.0
 
         # Current state
         self.connected: bool = False
@@ -31,16 +33,25 @@ class DerivWorker:
         self.contract_updates: list[dict] = []
         self.accounts: list[dict] = []  # list of {loginid, currency, is_virtual, ...}
         self.current_loginid: Optional[str] = None
+        self._stopped: bool = False
 
     async def start(self, token: str):
-        """Start the worker with a PAT token. Connects and authorizes."""
+        """Start the worker with a PAT token. Cancels any existing run first."""
+        await self.stop()
+        self._stopped = False
+        self._retry_delay = 1.0
         self._token = token
         self._task = asyncio.create_task(self._run())
 
     async def stop(self):
         """Stop the worker and disconnect."""
+        self._stopped = True
         if self._task:
             self._task.cancel()
+            try:
+                await self._task
+            except (asyncio.CancelledError, Exception):
+                pass
             self._task = None
         if self.client:
             await self.client.disconnect()
@@ -48,8 +59,8 @@ class DerivWorker:
         self.connected = False
 
     async def _run(self):
-        """Main loop: connect, authorize, keep alive."""
-        while True:
+        """Main loop: connect, authorize, keep alive with backoff."""
+        while not self._stopped:
             try:
                 self.client = DerivClient(app_id=1089)
 
@@ -66,6 +77,7 @@ class DerivWorker:
                 self.current_loginid = resp.get("authorize", {}).get("loginid")
                 await self.client.subscribe_balance()
                 self.connected = True
+                self._retry_delay = 1.0  # Reset backoff on successful connect
                 logger.info("DerivWorker: connected and authorized")
 
                 # Re-subscribe to any active symbols
@@ -73,20 +85,54 @@ class DerivWorker:
                     await self.client.subscribe_ticks(symbol)
 
                 # Keep running — _message_loop keeps the connection alive
-                while self.client and self.client._running:
+                # Also start broadcast loop for WS clients
+                broadcast_task = asyncio.create_task(self._broadcast_loop())
+                while self.client and self.client._running and not self._stopped:
                     await asyncio.sleep(1)
-                    # Market watchdog: check for tick staleness every 30s
                     await self._check_watchdog()
+                broadcast_task.cancel()
+                try:
+                    await broadcast_task
+                except (asyncio.CancelledError, Exception):
+                    pass
 
             except asyncio.CancelledError:
                 logger.info("DerivWorker: cancelled")
                 break
             except Exception as e:
-                logger.error(f"DerivWorker: error {e}, reconnecting in 5s")
+                error_str = str(e)
                 self.connected = False
+
+                # Check if token is invalid — stop retrying
+                if "InputValidationFailed" in error_str:
+                    logger.error(f"DerivWorker: INVALID TOKEN — stopping. Error: {e}")
+                    self._stopped = True
+                    break
+
+                if "InvalidToken" in error_str:
+                    logger.error(f"DerivWorker: TOKEN REJECTED — stopping. Error: {e}")
+                    self._stopped = True
+                    break
+
+                # Transient error — retry with backoff
+                logger.warning(
+                    f"DerivWorker: error {e}, "
+                    f"reconnecting in {self._retry_delay:.0f}s"
+                )
                 if self.client:
-                    await self.client.disconnect()
-                await asyncio.sleep(5)
+                    try:
+                        await self.client.disconnect()
+                    except Exception:
+                        pass
+                    self.client = None
+
+                await asyncio.sleep(self._retry_delay)
+                self._retry_delay = min(
+                    self._retry_delay * 2, self._max_retry_delay
+                )
+
+        self.connected = False
+        logger.info("DerivWorker: stopped")
 
     async def subscribe_market(self, symbol: str) -> bool:
         """Subscribe to a market's tick stream."""
@@ -149,6 +195,48 @@ class DerivWorker:
                         await self.client.subscribe_ticks(symbol)
                     except Exception as e:
                         logger.error(f"Watchdog re-subscribe failed: {e}")
+
+    async def _broadcast_loop(self):
+        """Broadcast status, ticks, and balance to all connected WS clients every ~0.3s."""
+        from app.api.ws import manager
+
+        logger.info("Broadcast loop started")
+
+        last_tick_snapshot: dict[str, float] = {}
+        last_balance_snapshot: Optional[float] = None
+
+        while self.connected and self.client and self.client._running and not self._stopped:
+            try:
+                # Build status message
+                status_msg = {
+                    "type": "status",
+                    "connected": self.connected,
+                    "balance": self.balance,
+                    "active_symbols": list(self.active_symbols),
+                }
+
+                # Also broadcast individual ticks
+                for symbol in list(self.active_symbols):
+                    tick = self.latest_ticks.get(symbol)
+                    if tick:
+                        await manager.broadcast({
+                            "type": "tick",
+                            "symbol": symbol,
+                            "tick": tick,
+                        })
+
+                # Status broadcast
+                await manager.broadcast(status_msg)
+
+                await asyncio.sleep(0.3)
+
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.warning(f"Broadcast loop error: {e}")
+                await asyncio.sleep(1)
+
+        logger.info("Broadcast loop ended")
 
 
 # Global singleton

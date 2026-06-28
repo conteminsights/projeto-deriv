@@ -126,6 +126,9 @@ class DerivClient:
 
     async def _send_and_wait(self, msg: dict, timeout: float = 15.0) -> dict:
         """Send message and wait for response."""
+        if self.ws is None:
+            raise ConnectionError("WebSocket not connected")
+
         self._request_id += 1
         req_id = self._request_id
         msg["req_id"] = req_id

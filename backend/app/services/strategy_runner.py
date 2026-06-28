@@ -56,6 +56,7 @@ class StrategyRunner:
                     duration=r.get("duration", 1),
                     duration_unit=r.get("duration_unit", "t"),
                     multiplier=r.get("multiplier", 0),
+                    barrier=r.get("barrier", 0),
                 )
                 rules.append(rule)
 
@@ -152,6 +153,7 @@ class StrategyRunner:
             duration=action.get("duration", 1),
             duration_unit=action.get("duration_unit", "t"),
             multiplier=action.get("multiplier", 0),
+            barrier=action.get("barrier", 0),
         )
         if not result or "error" in result:
             logger.warning(f"{page.name}: ordem falhou")
@@ -194,13 +196,72 @@ class StrategyRunner:
         # 6. Notify Soros pairs if MASTER
         bankroll_manager.notify_master_result(page.id, is_won)
 
-        # 7. Check mini-meta
+        # 7. Check mini-meta with controlled reset
         if bankroll_manager.check_mini_meta():
-            logger.info(f"{page.name}: mini-meta atingida, parando")
-            await self.stop()
+            logger.info(f"{page.name}: 🎯 MINI-META ATINGIDA! Profit={bankroll_manager.session_profit:.2f}")
+            # Broadcast mini-meta reached
+            from app.api.ws import manager
+            await manager.broadcast({
+                "type": "mini_meta",
+                "status": "reached",
+                "profit": bankroll_manager.session_profit,
+            })
+            # Controlled reset: pause 60s, reset session, resume
+            await self._controlled_reset(reason="mini-meta")
+            # Resume operating after reset
+            logger.info(f"{page.name}: mini-meta reset concluído, retomando")
+            return
 
-        # 8. Check auto-reload
-        bankroll_manager.check_auto_reload()
+        # 8. Check auto-reload (trigger actual reconnection)
+        if bankroll_manager.check_auto_reload():
+            logger.info(f"{page.name}: auto-reload acionado")
+            await self._controlled_reset(reason="auto-reload")
+
+    async def _controlled_reset(self, reason: str = "scheduled"):
+        """Pause trading, broadcast reset, wait 60s, reset session state."""
+        from app.api.ws import manager
+
+        # Stop the evaluation loop briefly
+        was_running = self._running
+        if was_running:
+            self._running = False
+            if self._task:
+                self._task.cancel()
+                try:
+                    await self._task
+                except (asyncio.CancelledError, Exception):
+                    pass
+                self._task = None
+
+        # Broadcast reset event
+        await manager.broadcast({
+            "type": "controlled_reset",
+            "reason": reason,
+            "message": f"Reset controlado: {reason}. Aguardando 60s...",
+        })
+
+        # Wait 60 seconds (controlled pause)
+        logger.info(f"Controlled reset ({reason}): pausando 60s...")
+        await asyncio.sleep(60)
+
+        # Reset session state
+        bankroll_manager.reset_session()
+        order_manager.active_contracts.clear()
+        page_manager.stop_all()
+
+        await manager.broadcast({
+            "type": "controlled_reset_done",
+            "reason": reason,
+            "message": "Reset concluído. Pronto para operar.",
+        })
+
+        # Restart evaluation loop if it was running
+        if was_running:
+            self._running = True
+            self._task = asyncio.create_task(self._run())
+            logger.info("Controlled reset: loop retomado")
+
+        logger.info(f"Controlled reset ({reason}): concluído")
 
 
 # Global singleton

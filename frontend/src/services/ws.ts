@@ -108,6 +108,10 @@ class DerivWebSocket {
   switchAccount(loginid: string) {
     this.send('switch_account', { loginid })
   }
+
+  loadStrategy(strategyId: number) {
+    this.send('load_strategy', { strategy_id: strategyId })
+  }
 }
 
 export const derivWS = new DerivWebSocket()

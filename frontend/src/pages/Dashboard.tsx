@@ -8,6 +8,8 @@ export function Dashboard() {
   const bankroll = useStore((s) => s.bankroll)
   const ticks = useStore((s) => s.ticks)
   const setBankroll = useStore((s) => s.setBankroll)
+  const miniMetaReached = useStore((s) => s.miniMetaReached)
+  const controlledReset = useStore((s) => s.controlledReset)
 
   useEffect(() => {
     statusApi.get().then((data) => {
@@ -25,6 +27,33 @@ export function Dashboard() {
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-bold text-white">Dashboard</h1>
+
+      {/* Mini-Meta Reached Notification */}
+      {miniMetaReached?.active && (
+        <div className="bg-[#ffd64f]/10 border border-[#ffd64f]/30 rounded-xl p-4 text-center">
+          <div className="text-2xl mb-1">🎯</div>
+          <div className="text-sm font-bold text-[#ffd64f]">MINI-META ATINGIDA!</div>
+          <div className="text-lg font-bold text-white mt-1">
+            +${miniMetaReached.profit.toFixed(2)}
+          </div>
+          <div className="text-xs text-[#6b6b80] mt-1">
+            Reset controlado — pausando 60 segundos...
+          </div>
+        </div>
+      )}
+
+      {/* Controlled Reset Notification */}
+      {controlledReset?.active && (
+        <div className="bg-[#f86525]/10 border border-[#f86525]/30 rounded-xl p-4">
+          <div className="flex items-center gap-2">
+            <span className="text-lg">🔄</span>
+            <div>
+              <div className="text-sm font-semibold text-[#f86525]">Reset Controlado</div>
+              <div className="text-xs text-[#6b6b80] mt-0.5">{controlledReset.message}</div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Status Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

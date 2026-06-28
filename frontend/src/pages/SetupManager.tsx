@@ -4,11 +4,13 @@ import { strategies as api } from '../services/api'
 import { useStore } from '../store'
 import { CustomStrategyBuilder } from '../components/CustomStrategyBuilder'
 import { MartingaleConfig } from '../components/MartingaleConfig'
+import { MiniMetaDialog } from '../components/MiniMetaDialog'
 
 export function SetupManager() {
   const [setups, setSetups] = useState<any[]>([])
   const [editing, setEditing] = useState<any | null>(null)
   const [saving, setSaving] = useState(false)
+  const [showMiniMeta, setShowMiniMeta] = useState(false)
   const refresh = useStore((s) => s.setStrategies)
 
   const load = async () => {
@@ -36,6 +38,17 @@ export function SetupManager() {
         defense_mode: 'none',
         profit_target: null,
         loss_limit: null,
+        mini_meta_enabled: false,
+        mini_meta_target: 50.0,
+        mini_meta_max_entries: 0,
+        auto_reload_enabled: false,
+        auto_reload_minutes: 30,
+        auto_reload_entries: 0,
+        limits_enabled: false,
+        daily_loss_limit: 0,
+        daily_profit_target: 0,
+        session_loss_limit: 0,
+        consecutive_loss_limit: 0,
       },
     })
   }
@@ -65,6 +78,11 @@ export function SetupManager() {
 
   const activate = async (id: number) => {
     await api.activate(id)
+  }
+
+  const updateMgmt = (field: string, value: any) => {
+    if (!editing) return
+    setEditing({ ...editing, management: { ...editing.management, [field]: value } })
   }
 
   return (
@@ -155,6 +173,141 @@ export function SetupManager() {
               onChange={(m) => setEditing({ ...editing, management: { ...editing.management, ...m } })}
             />
 
+            {/* Mini-Meta */}
+            <div className="bg-[#1a1a24] border border-[#2a2a3a] rounded-lg p-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={editing.management?.mini_meta_enabled || false}
+                  onChange={(e) => updateMgmt('mini_meta_enabled', e.target.checked)}
+                  className="w-4 h-4 rounded border-[#2a2a3a] bg-[#12121a] text-[#f86525]"
+                />
+                <span className="text-sm text-white">Mini-Meta</span>
+              </label>
+              {editing.management?.mini_meta_enabled && (
+                <div className="grid grid-cols-2 gap-2 mt-2 ml-6">
+                  <div>
+                    <label className="text-xs text-[#6b6b80]">Meta ($)</label>
+                    <input
+                      type="number"
+                      value={editing.management?.mini_meta_target || 50}
+                      onChange={(e) => updateMgmt('mini_meta_target', parseFloat(e.target.value) || 0)}
+                      min={0}
+                      step={5}
+                      className="w-full bg-[#12121a] border border-[#2a2a3a] rounded px-2 py-1.5 text-xs text-white mt-0.5"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-[#6b6b80]">Max Entradas</label>
+                    <input
+                      type="number"
+                      value={editing.management?.mini_meta_max_entries || 0}
+                      onChange={(e) => updateMgmt('mini_meta_max_entries', parseInt(e.target.value) || 0)}
+                      min={0}
+                      className="w-full bg-[#12121a] border border-[#2a2a3a] rounded px-2 py-1.5 text-xs text-white mt-0.5"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Auto-Reload */}
+            <div className="bg-[#1a1a24] border border-[#2a2a3a] rounded-lg p-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={editing.management?.auto_reload_enabled || false}
+                  onChange={(e) => updateMgmt('auto_reload_enabled', e.target.checked)}
+                  className="w-4 h-4 rounded border-[#2a2a3a] bg-[#12121a] text-[#f86525]"
+                />
+                <span className="text-sm text-white">Auto-Reload</span>
+              </label>
+              {editing.management?.auto_reload_enabled && (
+                <div className="grid grid-cols-2 gap-2 mt-2 ml-6">
+                  <div>
+                    <label className="text-xs text-[#6b6b80]}">A cada (min)</label>
+                    <input
+                      type="number"
+                      value={editing.management?.auto_reload_minutes || 30}
+                      onChange={(e) => updateMgmt('auto_reload_minutes', parseInt(e.target.value) || 30)}
+                      min={1}
+                      className="w-full bg-[#12121a] border border-[#2a2a3a] rounded px-2 py-1.5 text-xs text-white mt-0.5"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-[#6b6b80]">Após N entradas</label>
+                    <input
+                      type="number"
+                      value={editing.management?.auto_reload_entries || 0}
+                      onChange={(e) => updateMgmt('auto_reload_entries', parseInt(e.target.value) || 0)}
+                      min={0}
+                      className="w-full bg-[#12121a] border border-[#2a2a3a] rounded px-2 py-1.5 text-xs text-white mt-0.5"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Global Limits */}
+            <div className="bg-[#1a1a24] border border-[#2a2a3a] rounded-lg p-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={editing.management?.limits_enabled || false}
+                  onChange={(e) => updateMgmt('limits_enabled', e.target.checked)}
+                  className="w-4 h-4 rounded border-[#2a2a3a] bg-[#12121a] text-[#f86525]"
+                />
+                <span className="text-sm text-white">Limites Globais</span>
+              </label>
+              {editing.management?.limits_enabled && (
+                <div className="grid grid-cols-2 gap-2 mt-2 ml-6">
+                  <div>
+                    <label className="text-xs text-[#6b6b80]">Perda Diária Máx ($)</label>
+                    <input
+                      type="number"
+                      value={editing.management?.daily_loss_limit || 0}
+                      onChange={(e) => updateMgmt('daily_loss_limit', parseFloat(e.target.value) || 0)}
+                      min={0}
+                      step={10}
+                      className="w-full bg-[#12121a] border border-[#2a2a3a] rounded px-2 py-1.5 text-xs text-white mt-0.5"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-[#6b6b80]}">Lucro Diário Máx ($)</label>
+                    <input
+                      type="number"
+                      value={editing.management?.daily_profit_target || 0}
+                      onChange={(e) => updateMgmt('daily_profit_target', parseFloat(e.target.value) || 0)}
+                      min={0}
+                      step={10}
+                      className="w-full bg-[#12121a] border border-[#2a2a3a] rounded px-2 py-1.5 text-xs text-white mt-0.5"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-[#6b6b80]">Perda Sessão Máx ($)</label>
+                    <input
+                      type="number"
+                      value={editing.management?.session_loss_limit || 0}
+                      onChange={(e) => updateMgmt('session_loss_limit', parseFloat(e.target.value) || 0)}
+                      min={0}
+                      step={5}
+                      className="w-full bg-[#12121a] border border-[#2a2a3a] rounded px-2 py-1.5 text-xs text-white mt-0.5"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-[#6b6b80]">Perdas Consecutivas</label>
+                    <input
+                      type="number"
+                      value={editing.management?.consecutive_loss_limit || 0}
+                      onChange={(e) => updateMgmt('consecutive_loss_limit', parseInt(e.target.value) || 0)}
+                      min={0}
+                      className="w-full bg-[#12121a] border border-[#2a2a3a] rounded px-2 py-1.5 text-xs text-white mt-0.5"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
             <div className="flex gap-2 pt-2">
               <button onClick={save} disabled={saving} className="flex items-center gap-1 text-sm bg-[#f86525] hover:bg-[#e05515] disabled:opacity-50 text-white px-4 py-2 rounded-lg transition-colors">
                 <Save size={16} /> {saving ? 'Salvando...' : 'Salvar'}
@@ -170,6 +323,18 @@ export function SetupManager() {
           </div>
         )}
       </div>
+
+      {/* MiniMeta Dialog */}
+      <MiniMetaDialog
+        open={showMiniMeta}
+        onClose={() => setShowMiniMeta(false)}
+        profitTarget={editing?.management?.mini_meta_target || 50}
+        maxEntries={editing?.management?.mini_meta_max_entries || 0}
+        onSave={(target, entries) => {
+          updateMgmt('mini_meta_target', target)
+          updateMgmt('mini_meta_max_entries', entries)
+        }}
+      />
     </div>
   )
 }
